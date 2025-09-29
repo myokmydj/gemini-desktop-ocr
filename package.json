@@ -1,14 +1,15 @@
 {
-  "name": "my-app",
+  "name": "gemini-desktop-ocr",
   "version": "0.1.0",
   "private": true,
+  "description": "An OCR and translation tool using Gemini API.",
+  "author": "Your Name",
+  "main": "public/electron.js",
+  "homepage": "./",
   "dependencies": {
-    "@testing-library/dom": "^10.4.1",
-    "@testing-library/jest-dom": "^6.8.0",
-    "@testing-library/react": "^16.3.0",
-    "@testing-library/user-event": "^13.5.0",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
+    "@google/genai": "^0.14.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4"
   },
@@ -16,7 +17,10 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "electron-start": "electron .",
+    "dev": "concurrently \"cross-env BROWSER=none npm start\" \"wait-on http://localhost:3000 && cross-env ELECTRON_START_URL=http://localhost:3000 npm run electron-start\"",
+    "dist": "npm run build && electron-builder"
   },
   "eslintConfig": {
     "extends": [
@@ -35,5 +39,32 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "electron": "^31.0.2",
+    "electron-builder": "^24.13.3",
+    "electron-is-dev": "^3.0.1",
+    "font-list": "^2.0.1",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.example.gemini-ocr-translator",
+    "productName": "Gemini OCR Translator",
+    "files": [
+      "build/**/*",
+      "public/electron.js",
+      "public/preload.js",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "public/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }

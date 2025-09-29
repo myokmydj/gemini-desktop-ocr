@@ -1,38 +1,252 @@
-.App {
-  text-align: center;
+
+/* --- Web Fonts Import --- */
+@font-face {
+    font-family: 'Paperozi';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-4Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Paperozi';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2408-3@1.0/Paperlogy-7Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Presentation';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-4Regular.woff2') format('woff2');
+    font-weight: 400;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'Presentation';
+    src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2404@1.0/Freesentation-7Bold.woff2') format('woff2');
+    font-weight: 700;
+    font-display: swap;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
-}
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
-}
-
-.App-header {
-  background-color: #282c34;
+/* --- Global Styles & Theme --- */
+body {
+  background-color: #121212;
+  background-image: 
+    linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 20px 20px;
+  color: #e0e0e0;
+  font-family: var(--global-font-family, 'Paperozi', sans-serif);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 20px;
   min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* --- Main App Container --- */
+.App {
+  background-color: #ffffff;
+  color: #000000;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  padding: 24px;
+  width: 100%;
+  max-width: 800px;
+  box-sizing: border-box;
+}
+
+h1 {
+  font-size: 1.2em;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  margin: 0 0 24px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #e0e0e0;
+  font-weight: 700;
+}
+
+/* --- Controls Panel (Inspired by Reference 1) --- */
+.controls-panel {
+  border: 1px solid #e0e0e0;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.control-group {
+  margin-bottom: 20px;
+}
+
+.control-group:last-child {
+  margin-bottom: 0;
+}
+
+label {
+  display: block;
+  font-size: 0.7em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+input[type="password"],
+input[type="text"],
+select {
+  width: 100%;
+  background-color: transparent;
+  border: none;
+  border-bottom: 1px solid #000;
+  padding: 8px 0;
+  font-family: inherit;
+  font-size: 0.9em;
+  box-sizing: border-box;
+  border-radius: 0;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+select {
+  /* ▼▼▼ [수정] SVG를 별도 파일로 분리하여 빌드 오류를 최종적으로 해결합니다. ▼▼▼ */
+  background-image: url(./dropdown-arrow.svg);
+  background-repeat: no-repeat;
+  background-position: right 5px top 50%;
+  background-size: .65em auto;
+  padding-right: 20px;
+}
+
+button {
+  background-color: #000000;
+  color: #ffffff;
+  border: 1px solid #000000;
+  padding: 12px 15px;
+  width: 100%;
+  font-family: inherit;
+  font-size: 0.8em;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+button:hover {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+/* --- 2-Split Layout --- */
+.results-container {
+  display: flex;
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.result-panel-split {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
+}
+
+.result-title {
+  background-color: #000;
+  color: #fff;
+  padding: 6px 12px;
+  font-size: 0.8em;
+  font-weight: 700;
+  letter-spacing: 1px;
+  display: inline-block;
+  margin-bottom: 0;
+  flex-shrink: 0;
+}
+
+.result-box {
+  border: 1px solid #000;
+  padding: 16px;
+  min-height: 150px;
+  font-size: 0.9em;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  flex-grow: 1;
+  height: 100%;
+}
+
+/* --- Status Messages --- */
+.loading, .error {
+  text-align: center;
+  font-size: 0.8em;
+  padding: 15px;
+  margin-top: 20px;
+  border: 1px solid #e0e0e0;
+}
+
+.error {
+  border-color: #000;
+  color: #000;
+  background-color: #f0f0f0;
+}
+
+/* --- Glossary Section Styles --- */
+.glossary-section {
+  border-top: 1px solid #e0e0e0;
+  padding-top: 20px;
+}
+
+.glossary-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 15px 0;
+  max-height: 120px;
+  overflow-y: auto;
+  border: 1px solid #f0f0f0;
+  padding: 8px;
+}
+
+.glossary-item {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  padding: 6px 4px;
+  font-size: 0.9em;
+  border-bottom: 1px solid #f5f5f5;
 }
 
-.App-link {
-  color: #61dafb;
+.glossary-item:last-child {
+  border-bottom: none;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.glossary-delete-btn {
+  background: none;
+  border: none;
+  color: #ff0000;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 1.1em;
+  padding: 2px 8px;
+}
+.glossary-delete-btn:hover {
+  color: #ffffff;
+  background-color: #ff0000;
+}
+
+.glossary-add-form {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.glossary-add-form input {
+  flex: 1;
+  min-width: 0;
+}
+
+.glossary-add-form button {
+  flex-shrink: 0;
+  width: auto;
+  padding: 8px 15px;
+  font-size: 0.7em;
 }

@@ -1,6 +1,7 @@
 // File: src\App.js
 
-import React, { useState, useRef, useEffect } from 'react';
+// ▼▼▼ [수정] useCallback 훅을 import 합니다.
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { GoogleGenAI } from '@google/genai';
 import './App.css';
 
@@ -100,23 +101,6 @@ function App() {
     document.documentElement.style.setProperty('--global-font-family', selectedFont);
   }, [selectedFont]);
 
-
-  useEffect(() => {
-    if (window.electronAPI) {
-      const handleCaptureComplete = (screenshotDataUrl, rect) => {
-        if (screenshotDataUrl && rect && rect.width > 0 && rect.height > 0) {
-          processAndTranslate(screenshotDataUrl, rect);
-        }
-      };
-      
-      const cleanupListener = window.electronAPI.on('capture-complete', handleCaptureComplete);
-
-      return () => {
-        cleanupListener();
-      };
-    }
-  }, [targetLanguage]);
-
   const handleStartCapture = () => {
     if (window.electronAPI) {
       setOriginalText('');
@@ -138,7 +122,9 @@ function App() {
     return processedText;
   };
 
-  const processAndTranslate = (dataUrl, selection) => {
+  // ▼▼▼ [수정] processAndTranslate 함수를 useCallback으로 감싸줍니다.
+  // 이 함수는 targetLanguage가 바뀔 때만 새로 생성됩니다.
+  const processAndTranslate = useCallback((dataUrl, selection) => {
     if (!apiKeyRef.current) {
       setError('Please enter your Gemini API Key.');
       return;
@@ -175,7 +161,6 @@ function App() {
           { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" },
         ];
 
-        // 1단계: OCR (이미지에서 텍스트 추출)
         const ocrPrompt = "Extract all text from this image. Only provide the extracted text, without any additional comments or formatting.";
         const ocrResponse = await ai.models.generateContent({
           model,
@@ -188,13 +173,10 @@ function App() {
           throw new Error("No text could be extracted from the image.");
         }
         
-        // ▼▼▼ [수정] 1. 순수 OCR 결과를 originalText 상태에 즉시 저장합니다. ▼▼▼
         setOriginalText(extractedText);
 
-        // 1.5단계: 용어집 적용 (번역 요청에만 사용)
         const textWithGlossary = applyGlossary(extractedText, glossaryRef.current);
 
-        // 2단계: 번역 (용어집이 적용된 텍스트를 번역)
         const translatePrompt = `Translate the following text to ${targetLanguage}. Provide only the translated text.\n\nText:\n"""${textWithGlossary}"""`;
         const translateResponse = await ai.models.generateContent({
           model,
@@ -216,7 +198,25 @@ function App() {
         setLoading(false);
     }
     img.src = dataUrl;
-  };
+  }, [targetLanguage]); // 의존성 배열에 targetLanguage를 추가합니다.
+
+  // ▼▼▼ [수정] 문제가 되었던 useEffect 훅입니다.
+  useEffect(() => {
+    if (window.electronAPI) {
+      const handleCaptureComplete = (screenshotDataUrl, rect) => {
+        if (screenshotDataUrl && rect && rect.width > 0 && rect.height > 0) {
+          processAndTranslate(screenshotDataUrl, rect);
+        }
+      };
+      
+      const cleanupListener = window.electronAPI.on('capture-complete', handleCaptureComplete);
+
+      return () => {
+        cleanupListener();
+      };
+    }
+    // ▼▼▼ [수정] 의존성 배열에 processAndTranslate를 추가하여 ESLint 경고를 해결합니다.
+  }, [processAndTranslate]);
   
   const handleAddGlossaryTerm = () => {
     if (newGlossaryOriginal.trim() && newGlossaryTranslated.trim()) {
@@ -336,7 +336,6 @@ function App() {
       {(originalText && !loading) && (
         <div className="results-container">
           <div className="result-panel-split">
-            {/* ▼▼▼ [수정] 2. 결과창 제목을 원래대로 되돌립니다. ▼▼▼ */}
             <div className="result-title">ORIGINAL TEXT</div>
             <div className="result-box">{originalText}</div>
           </div>

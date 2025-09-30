@@ -1,7 +1,7 @@
 // File: public/preload.js
 
 const { contextBridge, ipcRenderer } = require('electron');
-const fontList = require('font-list');
+// const fontList = require('font-list'); // ▼▼▼ [제거] 이 줄을 완전히 삭제합니다.
 
 contextBridge.exposeInMainWorld('electronAPI', {
   // Main window to Main process

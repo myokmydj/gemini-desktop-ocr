@@ -3,7 +3,8 @@
 const { app, BrowserWindow, ipcMain, screen, desktopCapturer } = require('electron');
 const path = require('path');
 const url = require('url');
-const isDev = require('electron-is-dev'); // ▼▼▼ [추가] 개발/프로덕션 환경 구분
+const isDev = require('electron-is-dev');
+const fontList = require('font-list'); // ▼▼▼ [이동] font-list 모듈을 여기서 require 합니다.
 
 let mainWindow;
 let captureWindow;
@@ -19,7 +20,6 @@ function createMainWindow() {
     },
   });
 
-  // ▼▼▼ [수정] 개발 모드와 프로덕션 모드에서 다른 경로를 로드합니다.
   const startUrl = isDev
     ? process.env.ELECTRON_START_URL || 'http://localhost:3000'
     : url.format({
@@ -121,11 +121,10 @@ ipcMain.on('close-capture-window', () => {
     }
 });
 
+// ▼▼▼ [수정] 폰트 목록을 가져오는 로직이 이제 메인 프로세스에서 안전하게 실행됩니다.
 ipcMain.handle('get-system-fonts', async () => {
     try {
-        const fontList = require('font-list');
         const fonts = await fontList.getFonts();
-        // 중복 제거 및 주요 폰트 위주 필터링 (선택 사항)
         const uniqueFonts = [...new Set(fonts.map(font => font.replace(/"/g, '')))];
         return uniqueFonts;
     } catch (error) {

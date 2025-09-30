@@ -1,17 +1,28 @@
+// File: public/preload.js
+
 const { contextBridge, ipcRenderer } = require('electron');
+const fontList = require('font-list');
 
 contextBridge.exposeInMainWorld('electronAPI', {
-  send: (channel, data) => {
-    ipcRenderer.send(channel, data);
+  // Main window to Main process
+  send: (channel, ...args) => {
+    const validChannels = ['start-capture', 'capture-region', 'close-capture-window'];
+    if (validChannels.includes(channel)) {
+      ipcRenderer.send(channel, ...args);
+    }
   },
+  // Main process to Main window
   on: (channel, func) => {
-    const subscription = (event, ...args) => func(...args);
-    ipcRenderer.on(channel, subscription);
-
-    return () => {
-      ipcRenderer.removeListener(channel, subscription);
-    };
+    const validChannels = ['capture-complete'];
+    if (validChannels.includes(channel)) {
+      // Deliberately strip event as it includes `sender`
+      const subscription = (event, ...args) => func(...args);
+      ipcRenderer.on(channel, subscription);
+      
+      // Return a cleanup function
+      return () => ipcRenderer.removeListener(channel, subscription);
+    }
   },
-  // ▼▼▼ [추가] 시스템 폰트를 요청하는 함수 노출 ▼▼▼
+  // Main process to Main window (Invoke/Handle)
   getSystemFonts: () => ipcRenderer.invoke('get-system-fonts')
 });

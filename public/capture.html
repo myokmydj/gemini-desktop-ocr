@@ -1,50 +1,61 @@
+<!-- File: public/capture.html -->
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8" />
-    <title>Capture</title>
+    <meta charset="UTF-8">
+    <title>Capture Screen</title>
     <style>
-        body {
+        body, html {
             margin: 0;
             padding: 0;
+            width: 100%;
+            height: 100%;
             overflow: hidden;
             cursor: crosshair;
-            background-size: cover;
-            background-repeat: no-repeat;
         }
-        #selection-box {
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5); /* 화면을 어둡게 하는 반투명 배경 */
+            z-index: 9998;
+        }
+        #selection {
             position: absolute;
-            border: 2px dashed #4285F4;
-            background-color: rgba(66, 133, 244, 0.2);
+            border: 2px solid #ffffff;
+            background-color: rgba(255, 255, 255, 0.1);
+            z-index: 9999;
             box-sizing: border-box;
         }
     </style>
 </head>
 <body>
-    <div id="selection-box"></div>
+    <div id="overlay"></div>
+    <div id="selection" style="display: none;"></div>
+
     <script>
-        const selectionBox = document.getElementById('selection-box');
-        let isSelecting = false;
+        const selectionDiv = document.getElementById('selection');
+        let isDragging = false;
         let startX, startY;
 
-        // 메인 프로세스로부터 스크린샷 데이터를 받아서 배경으로 설정
-        window.electronAPI.on('set-screenshot-source', (screenshotDataUrl) => {
-            document.body.style.backgroundImage = `url('${screenshotDataUrl}')`;
-        });
-
+        // 마우스 누를 때: 드래그 시작
         document.addEventListener('mousedown', (e) => {
-            isSelecting = true;
+            isDragging = true;
             startX = e.clientX;
             startY = e.clientY;
-            selectionBox.style.left = `${startX}px`;
-            selectionBox.style.top = `${startY}px`;
-            selectionBox.style.width = '0px';
-            selectionBox.style.height = '0px';
+            selectionDiv.style.left = startX + 'px';
+            selectionDiv.style.top = startY + 'px';
+            selectionDiv.style.width = '0px';
+            selectionDiv.style.height = '0px';
+            selectionDiv.style.display = 'block';
         });
 
+        // 마우스 움직일 때: 선택 영역 크기 조절
         document.addEventListener('mousemove', (e) => {
-            if (!isSelecting) return;
-            
+            if (!isDragging) return;
+
             const currentX = e.clientX;
             const currentY = e.clientY;
 
@@ -53,30 +64,36 @@
             const left = Math.min(startX, currentX);
             const top = Math.min(startY, currentY);
 
-            selectionBox.style.left = `${left}px`;
-            selectionBox.style.top = `${top}px`;
-            selectionBox.style.width = `${width}px`;
-            selectionBox.style.height = `${height}px`;
+            selectionDiv.style.left = left + 'px';
+            selectionDiv.style.top = top + 'px';
+            selectionDiv.style.width = width + 'px';
+            selectionDiv.style.height = height + 'px';
         });
 
+        // 마우스 뗄 때: 드래그 종료 및 좌표 전송
         document.addEventListener('mouseup', (e) => {
-            if (!isSelecting) return;
-            isSelecting = false;
+            if (!isDragging) return;
+            isDragging = false;
 
             const rect = {
-                x: parseInt(selectionBox.style.left),
-                y: parseInt(selectionBox.style.top),
-                width: parseInt(selectionBox.style.width),
-                height: parseInt(selectionBox.style.height)
+                x: parseInt(selectionDiv.style.left, 10),
+                y: parseInt(selectionDiv.style.top, 10),
+                width: parseInt(selectionDiv.style.width, 10),
+                height: parseInt(selectionDiv.style.height, 10)
             };
-            
+
             // 선택 영역이 너무 작으면 무시
             if (rect.width > 5 && rect.height > 5) {
-                // 선택한 영역의 좌표를 메인 프로세스로 전송
-                window.electronAPI.send('capture-selection', rect);
+                window.electronAPI.send('capture-region', rect);
             } else {
-                // 선택이 유효하지 않으면 그냥 창을 닫도록 요청 (좌표 없이)
-                window.electronAPI.send('capture-selection', null);
+                window.electronAPI.send('close-capture-window');
+            }
+        });
+
+        // ESC 키 누르면 캡처 취소
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                window.electronAPI.send('close-capture-window');
             }
         });
     </script>
